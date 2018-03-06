@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import 'rxjs/add/operator/debounceTime';
 
 import { Customer } from './customer';
@@ -22,6 +22,10 @@ export class CustomerComponent implements OnInit {
   customerForm: FormGroup;
   customer: Customer = new Customer();
   emailErrors: string = '';
+
+  get addresses(): FormArray {
+    return <FormArray>this.customerForm.get('addresses');
+  }
 
   private _validationMessages = {
     required: 'Please enter your email address.',
@@ -46,7 +50,8 @@ export class CustomerComponent implements OnInit {
       phone: '',
       notification: 'email',
       rating: ['', ratingRangeValidator],
-      sendCatalog: true
+      sendCatalog: true,
+      addresses: this._fb.array([this.buildAddressGroup()])
     });
 
     this.customerForm.get('notification').valueChanges.subscribe(value => {
@@ -54,7 +59,6 @@ export class CustomerComponent implements OnInit {
     });
 
     const emailControl = this.customerForm.get('emailGroup.email');
-
     emailControl.valueChanges
       .debounceTime(1000)
       .subscribe(value => {
@@ -116,4 +120,35 @@ export class CustomerComponent implements OnInit {
       .join(' ');
   }
 
+  /**
+   * Build the address form group.
+   *
+   * @returns {FormGroup}
+   */
+  buildAddressGroup(): FormGroup {
+    return this._fb.group({
+      addressType: 'home',
+      street1: '',
+      street2: '',
+      city: '',
+      state: '',
+      zip: ''
+    })
+  }
+
+  /**
+   * Add another address group.
+   */
+  addAddress(): void {
+    this.addresses.push(this.buildAddressGroup());
+  }
+
+  /**
+   * Remove an address group.
+   *
+   * @param {number} index
+   */
+  removeAddress(index: number): void {
+    this.addresses.removeAt(index);
+  }
 }
